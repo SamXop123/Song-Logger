@@ -16,27 +16,28 @@ const SongItem = memo(function SongItem({ song, onEdit, onDelete }) {
     }, [onDelete, song]);
 
     return (
-        <li className="p-2 bg-gray-50 dark:bg-gray-700 rounded flex justify-between items-center">
-            <div>
-                <span className="font-medium text-gray-900 dark:text-white">
-                    {song.songName}
-                </span>
-                {song.labels && song.labels.length > 0 && (
-                    <div className="mt-1">
-                        {song.labels.map((lbl) => (
-                            <span
-                                key={lbl}
-                                className={`text-sm text-white px-2 py-1 rounded ${getLabelColor(lbl)} mr-1`}
-                            >
-                                {lbl}
-                            </span>
-                        ))}
-                    </div>
-                )}
-                <br />
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(song.date).toLocaleString()}
-                </span>
+        <li className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all hover:shadow-sm">
+            <div className="flex-1 min-w-0">
+                <div className="flex flex-col gap-1">
+                    <span className="font-semibold text-gray-900 dark:text-white truncate">
+                        {song.songName}
+                    </span>
+                    {song.labels && song.labels.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                            {song.labels.map((lbl) => (
+                                <span
+                                    key={lbl}
+                                    className={`text-[10px] sm:text-xs font-medium text-white px-2 py-0.5 rounded-md shadow-sm ${getLabelColor(lbl)}`}
+                                >
+                                    {lbl}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                    <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
+                        {new Date(song.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                    </span>
+                </div>
             </div>
             <div className="flex gap-2">
                 <button
