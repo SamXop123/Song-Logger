@@ -21,12 +21,14 @@ export default function Home() {
 
   const [songName, setSongName] = useState("");
   const [editingSong, setEditingSong] = useState(null);
+  const [customDate, setCustomDate] = useState("");
 
   // --- Form state helpers ---
   const resetForm = useCallback(() => {
     setSongName("");
     resetLabels();
     setEditingSong(null);
+    setCustomDate("");
   }, [resetLabels]);
 
   const handleEdit = useCallback(
@@ -42,10 +44,10 @@ export default function Home() {
     async (e) => {
       e.preventDefault();
       if (!songName.trim()) return;
-      await addSong(songName, selectedLabels);
+      await addSong(songName, selectedLabels, customDate || null);
       resetForm();
     },
-    [songName, selectedLabels, addSong, resetForm]
+    [songName, selectedLabels, customDate, addSong, resetForm]
   );
 
   const handleSaveEdit = useCallback(
@@ -83,6 +85,8 @@ export default function Home() {
               editingSong={editingSong}
               onSubmit={editingSong ? handleSaveEdit : handleSubmit}
               onCancelEdit={resetForm}
+              customDate={customDate}
+              onCustomDateChange={setCustomDate}
             />
           </div>
 
