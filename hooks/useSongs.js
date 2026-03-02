@@ -26,14 +26,21 @@ export function useSongs() {
     }, []);
 
     const addSong = useCallback(
-        async (songName, labels) => {
+        async (songName, labels, customDate) => {
+            const date = customDate
+                ? new Date(customDate).toISOString()
+                : new Date().toISOString();
             const newSong = {
                 songName: songName.trim(),
-                date: new Date().toISOString(),
+                date,
                 labels,
             };
             const id = await getDb().songs.add(newSong);
-            setSongs((prev) => [{ ...newSong, id }, ...prev]);
+            setSongs((prev) => {
+                const updated = [{ ...newSong, id }, ...prev];
+                // Re-sort by date descending so a backdated song appears in the right place
+                return updated.sort((a, b) => new Date(b.date) - new Date(a.date));
+            });
             showMessage("Song added successfully!");
         },
         [showMessage]
