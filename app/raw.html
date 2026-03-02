@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Song Log</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {}
+      }
+    }
+  </script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #3b82f6;
+      /* blue-500 */
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #2563eb;
+      /* blue-600 */
+    }
+
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #60a5fa;
+      /* blue-400 */
+    }
+
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #93c5fd;
+      /* blue-300 */
+    }
+
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #3b82f6 transparent;
+      background: transparent;
+    }
+
+    .dark .custom-scrollbar {
+      scrollbar-color: #60a5fa transparent;
+      background: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+
+    const { useState, useEffect } = React;
+
+    // Initialize Dexie database
+    const db = new Dexie('SongLogDB');
+    db.version(3).stores({
+      songs: '++id,date,songName,labels'
+    }).upgrade(tx => {
+      return tx.table('songs').toCollection().modify(song => {
+        song.labels = song.label ? [song.label] : [];
+      });
+    });
+
+    function App() {
+      const [songName, setSongName] = useState('');
+      const [selectedLabels, setSelectedLabels] = useState([]);
+      const [customLabel, setCustomLabel] = useState('');
+      const [songs, setSongs] = useState([]);
+      const [message, setMessage] = useState('');
+      const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+      const [editingSong, setEditingSong] = useState(null);
+
+      const predefinedLabels = ['Phonk', 'Hindi', 'Instrumental', 'Romantic', 'Sad', 'Uplifting', 'Chill', 'OG', 'Nostalgia', 'Spiritual'];
+
+      // Load songs from database on mount, sorted by date descending
+      useEffect(() => {
+        db.songs.orderBy('date').reverse().toArray().then(setSongs);
+      }, []);
+
+      // Initialize tsParticles
+      useEffect(() => {
+        tsParticles.load('particles-js', {
+          particles: {
+            number: { value: 50, density: { enable: true, value_area: 800 } },
+            color: { value: theme === 'dark' ? '#ffffff' : '#000000' },
+            shape: { type: 'circle' },
+            opacity: { value: 0.5, random: true },
+            size: { value: 3, random: true },
+            line_linked: {
+              enable: true,
+              distance: 150,
+              color: theme === 'dark' ? '#ffffff' : '#000000',
+              opacity: 0.4,
+              width: 1
+            },
+            move: {
+              enable: true,
+              speed: 2,
+              direction: 'none',
+              random: false,
+              straight: false,
+              out_mode: 'out',
+              bounce: false
+            }
+          },
+          interactivity: {
+            events: {
+              onhover: { enable: true, mode: 'repulse' },
+              onclick: { enable: true, mode: 'push' }
+            },
+            modes: {
+              repulse: { distance: 100, duration: 0.4 },
+              push: { particles_nb: 4 }
+            }
+          },
+          retina_detect: true
+        });
+      }, [theme]);
+
+      // Handle theme toggle
+      useEffect(() => {
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+        }
+      }, [theme]);
+
+      const toggleTheme = () => {
+        setTheme(theme === 'light' ? 'dark' : 'light');
+      };
+
+      // Handle label selection
+      const toggleLabel = (label) => {
+        if (selectedLabels.includes(label)) {
+          setSelectedLabels(selectedLabels.filter(l => l !== label));
+        } else {
+          setSelectedLabels([...selectedLabels, label]);
+        }
+      };
+
+      // Handle custom label addition
+      const addCustomLabel = () => {
+        if (customLabel.trim() && !selectedLabels.includes(customLabel.trim())) {
+          setSelectedLabels([...selectedLabels, customLabel.trim()]);
+          setCustomLabel('');
+        }
+      };
+
+      // Handle song submission
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!songName.trim()) {
+          setMessage('Please enter a song name');
+          return;
+        }
+
+        const newSong = {
+          songName: songName.trim(),
+          date: new Date().toISOString(),
+          labels: selectedLabels
+        };
+
+        await db.songs.add(newSong);
+        setSongs([newSong, ...songs]);
+        setSongName('');
+        setSelectedLabels([]);
+        setCustomLabel('');
+        setMessage('Song added successfully!');
+        setTimeout(() => setMessage(''), 3000);
+      };
+
+      // Handle edit song
+      const handleEdit = (song) => {
+        setEditingSong(song);
+        setSongName(song.songName);
+        setSelectedLabels(song.labels || []);
+        setCustomLabel('');
+      };
+
+      // Handle save edit
+      const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        if (!songName.trim()) {
+          setMessage('Please enter a song name');
+          return;
+        }
+
+        const updatedSong = {
+          ...editingSong,
+          songName: songName.trim(),
+          labels: selectedLabels
+        };
+
+        await db.songs.update(editingSong.id, {
+          songName: songName.trim(),
+          labels: selectedLabels
+        });
+
+        setSongs(songs.map(s => s.id === editingSong.id ? updatedSong : s));
+        setEditingSong(null);
+        setSongName('');
+        setSelectedLabels([]);
+        setCustomLabel('');
+        setMessage('Song updated successfully!');
+        setTimeout(() => setMessage(''), 3000);
+      };
+
+      // Cancel edit
+      const cancelEdit = () => {
+        setEditingSong(null);
+        setSongName('');
+        setSelectedLabels([]);
+        setCustomLabel('');
+      };
+
+      // Export to CSV with separate Date, Time, and Labels columns
+      const exportToCSV = () => {
+        const headers = 'Date,Time,Song Name,Labels\n';
+        const csv = songs.reduce((acc, song) => {
+          const dateObj = new Date(song.date);
+          const date = dateObj.toLocaleDateString();
+          const time = dateObj.toLocaleTimeString();
+          const labels = (song.labels || []).join(', ');
+          return acc + `${date},${time},${song.songName},"${labels}"\n`;
+        }, headers);
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `song_log_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      // Get label color based on label name
+      const getLabelColor = (label) => {
+        const colors = {
+          'Phonk': 'bg-purple-500',
+          'Hindi': 'bg-orange-500',
+          'Instrumental': 'bg-teal-500',
+          'Romantic': 'bg-pink-500',
+          'Sad': 'bg-blue-500',
+          'Uplifting': 'bg-green-500',
+          'Chill': 'bg-indigo-500',
+          'OG': 'bg-red-600',
+          'Nostalgia': 'bg-lime-600',
+          'Spiritual': 'bg-amber-600'
+        };
+        return colors[label] || 'bg-gray-500';
+      };
+
+      return (
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-start justify-center p-4 relative">
+          <div id="particles-js" className="absolute inset-0 z-0"></div>
+          <div className="flex flex-col mt-10 lg:flex-row gap-6 w-full max-w-4xl z-10">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full lg:w-1/2 flex flex-col">
+              <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Song Log</h1>
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white"
+                >
+                  {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+                </button>
+              </div>
+
+              <div className="flex-grow">
+                <form onSubmit={editingSong ? handleSaveEdit : handleSubmit}>
+                  <input
+                    type="text"
+                    value={songName}
+                    onChange={(e) => setSongName(e.target.value)}
+                    placeholder="Enter song name"
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 mb-2"
+                  />
+                  <div className="mb-2">
+                    <label className="text-sm text-gray-900 dark:text-white">Select Labels (optional):</label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {predefinedLabels.map((lbl) => (
+                        <button
+                          key={lbl}
+                          type="button"
+                          onClick={() => toggleLabel(lbl)}
+                          className={`px-2 py-1 rounded text-sm ${selectedLabels.includes(lbl)
+                              ? `${getLabelColor(lbl)} text-white`
+                              : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white'
+                            }`}
+                        >
+                          {lbl}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={customLabel}
+                      onChange={(e) => setCustomLabel(e.target.value)}
+                      placeholder="Add custom label"
+                      className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomLabel}
+                      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {selectedLabels.length > 0 && (
+                    <div className="mb-2">
+                      <span className="text-sm text-gray-900 dark:text-white">Selected: </span>
+                      {selectedLabels.map((lbl) => (
+                        <span key={lbl} className={`text-sm text-white px-2 py-1 rounded ${getLabelColor(lbl)} mr-1`}>
+                          {lbl}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                  >
+                    {editingSong ? 'Save Edit' : 'Add Song'}
+                  </button>
+                  {editingSong && (
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600 mt-2"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </form>
+              </div>
+
+              {message && (
+                <p className="text-green-500 text-center mb-4">{message}</p>
+              )}
+              <footer className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+                &copy; SamXop123 2025 - Song Logger
+              </footer>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full lg:w-1/2">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Song Log</h2>
+                <button
+                  onClick={exportToCSV}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  Export to CSV
+                </button>
+              </div>
+              {songs.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400">No songs logged yet.</p>
+              ) : (
+                <ul className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+                  {songs.map((song) => (
+                    <li key={song.id} className="p-2 bg-gray-50 dark:bg-gray-700 rounded flex justify-between items-center">
+                      <div>
+                        <span className="font-medium text-gray-900 dark:text-white">{song.songName}</span>
+                        {song.labels && song.labels.length > 0 && (
+                          <div className="mt-1">
+                            {song.labels.map((lbl) => (
+                              <span key={lbl} className={`text-sm text-white px-2 py-1 rounded ${getLabelColor(lbl)} mr-1`}>
+                                {lbl}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <br />
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(song.date).toLocaleString()}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleEdit(song)}
+                        className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        Edit
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+
+</html>
