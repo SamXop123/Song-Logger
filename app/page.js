@@ -90,7 +90,7 @@ export default function Home() {
             <p className="text-green-500 text-center mb-4">{message}</p>
           )}
           <footer className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-            &copy;SamXop123 2026 - Song Logger
+            &copy; SamXop123 - Song Logger 2026
           </footer>
         </div>
 
