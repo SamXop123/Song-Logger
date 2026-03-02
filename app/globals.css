@@ -25,9 +25,11 @@ body {
 }
 
 /* Custom scrollbar */
+/* Custom scrollbar - Slim & Premium */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  background: transparent;
+  width: 4px;
+  height: 4px;
+  /* For horizontal scroll if needed */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -35,30 +37,33 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #3b82f6;
-  border-radius: 4px;
-  transition: background 0.3s;
+  background: #cbd5e1;
+  /* slate-300 */
+  border-radius: 10px;
+  transition: all 0.2s;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #2563eb;
+  background: #94a3b8;
+  /* slate-400 */
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #60a5fa;
+  background: #475569;
+  /* slate-600 */
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #93c5fd;
+  background: #64748b;
+  /* slate-500 */
 }
 
+/* Firefox support */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #3b82f6 transparent;
-  background: transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .dark .custom-scrollbar {
-  scrollbar-color: #60a5fa transparent;
-  background: transparent;
+  scrollbar-color: #475569 transparent;
 }
