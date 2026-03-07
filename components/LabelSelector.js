@@ -110,12 +110,18 @@ export default function LabelSelector({
                     </div>
                     <div className="flex flex-wrap gap-1.5 overflow-hidden">
                         {selectedLabels.map((lbl) => (
-                            <span
+                            <button
                                 key={lbl}
-                                className={`text-xs font-semibold text-white px-2.5 py-1 rounded-lg shadow-sm animate-in fade-in zoom-in duration-200 ${getLabelColor(lbl)}`}
+                                type="button"
+                                onClick={() => onToggle(lbl)}
+                                className={`flex items-center gap-1 text-xs font-semibold text-white px-2.5 py-1 rounded-lg shadow-sm animate-in fade-in zoom-in duration-200 cursor-pointer hover:opacity-85 transition-opacity ${getLabelColor(lbl)}`}
+                                title={`Remove ${lbl}`}
                             >
-                                {lbl}
-                            </span>
+                                <span>{lbl}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 opacity-80 hover:opacity-100">
+                                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                                </svg>
+                            </button>
                         ))}
                     </div>
                 </div>
