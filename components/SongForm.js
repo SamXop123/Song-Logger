@@ -51,7 +51,7 @@ const SongForm = memo(function SongForm({
                         type="text"
                         value={songName}
                         onChange={(e) => onSongNameChange(e.target.value)}
-                        placeholder="e.g. Bohemian Rhapsody"
+                        placeholder="song here..."
                         className="w-full px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 dark:focus:ring-violet-400/50 dark:focus:border-violet-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-100 transition-all shadow-inner"
                     />
                 </div>
@@ -73,8 +73,8 @@ const SongForm = memo(function SongForm({
                     type="button"
                     onClick={handleToggleCustomDate}
                     className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm ${useCustomDate
-                            ? "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 ring-1 ring-violet-300 dark:ring-violet-700/50"
-                            : "bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                        ? "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 ring-1 ring-violet-300 dark:ring-violet-700/50"
+                        : "bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                         }`}
                 >
                     <span>{useCustomDate ? "🗓️" : "🕐"}</span>
