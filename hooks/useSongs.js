@@ -70,14 +70,25 @@ export function useSongs() {
         [showMessage]
     );
 
+    /** Escape a value for CSV: wrap in quotes if it contains comma, quote, or newline. */
+    const csvEscape = (val) => {
+        if (/[,"\n\r]/.test(val)) {
+            return `"${val.replace(/"/g, '""')}"`;
+        }
+        return val;
+    };
+
     const exportToCSV = useCallback(() => {
         const headers = "Date,Time,Song Name,Labels\n";
         const csv = songs.reduce((acc, song) => {
             const d = new Date(song.date);
+            // Use stable ISO-style date (YYYY-MM-DD) and 24h time (HH:MM:SS)
+            const dateStr = d.toISOString().split("T")[0];
+            const timeStr = d.toTimeString().split(" ")[0]; // HH:MM:SS
             const labels = (song.labels || []).join(", ");
             return (
                 acc +
-                `${d.toLocaleDateString()},${d.toLocaleTimeString()},${song.songName},"${labels}"\n`
+                `${dateStr},${timeStr},${csvEscape(song.songName)},${csvEscape(labels)}\n`
             );
         }, headers);
 
@@ -101,8 +112,11 @@ export function useSongs() {
                 return;
             }
 
-            const existingNames = new Set(
-                (await getDb().songs.toArray()).map((s) => s.songName.toLowerCase())
+            // Deduplicate by composite key: songName (lowered) + date ISO string
+            const existingKeys = new Set(
+                (await getDb().songs.toArray()).map(
+                    (s) => `${s.songName.toLowerCase()}|||${s.date}`
+                )
             );
 
             const newSongs = [];
@@ -135,22 +149,34 @@ export function useSongs() {
                 const labelsStr = fields[3] || "";
 
                 if (!songName) continue;
-                if (existingNames.has(songName.toLowerCase())) continue;
 
-                // Try to reconstruct a proper date from the locale strings
+                // Try to reconstruct a proper date
                 let date;
                 try {
-                    date = new Date(`${dateStr} ${timeStr}`).toISOString();
+                    // Handle ISO format (YYYY-MM-DD HH:MM:SS) or locale format
+                    const parsed = new Date(`${dateStr}T${timeStr}`);
+                    if (!isNaN(parsed.getTime())) {
+                        date = parsed.toISOString();
+                    } else {
+                        // Fallback: try space-separated (for old locale-format CSVs)
+                        const parsed2 = new Date(`${dateStr} ${timeStr}`);
+                        date = !isNaN(parsed2.getTime())
+                            ? parsed2.toISOString()
+                            : new Date().toISOString();
+                    }
                 } catch {
                     date = new Date().toISOString();
                 }
+
+                const key = `${songName.toLowerCase()}|||${date}`;
+                if (existingKeys.has(key)) continue;
 
                 const labels = labelsStr
                     ? labelsStr.split(",").map((l) => l.trim()).filter(Boolean)
                     : [];
 
                 newSongs.push({ songName, date, labels });
-                existingNames.add(songName.toLowerCase());
+                existingKeys.add(key);
             }
 
             if (newSongs.length === 0) {
