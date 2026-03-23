@@ -70,6 +70,12 @@ export function useSongs() {
         [showMessage]
     );
 
+    const deleteAllSongs = useCallback(async () => {
+        await getDb().songs.clear();
+        setSongs([]);
+        showMessage("All songs deleted.");
+    }, [showMessage]);
+
     /** Escape a value for CSV: wrap in quotes if it contains comma, quote, or newline. */
     const csvEscape = (val) => {
         if (/[,"\n\r]/.test(val)) {
@@ -192,5 +198,5 @@ export function useSongs() {
         [showMessage]
     );
 
-    return { songs, message, addSong, updateSong, deleteSong, importFromCSV, exportToCSV };
+    return { songs, message, addSong, updateSong, deleteSong, deleteAllSongs, importFromCSV, exportToCSV };
 }
