@@ -14,7 +14,7 @@ import SongList from "@/components/SongList";
  * All business logic lives in hooks; this component only wires them together.
  */
 export default function Home() {
-  const { songs, message, addSong, updateSong, deleteSong, importFromCSV, exportToCSV } = useSongs();
+  const { songs, message, addSong, updateSong, deleteSong, deleteAllSongs, importFromCSV, exportToCSV } = useSongs();
   const { theme, toggleTheme } = useTheme();
   const { selectedLabels, customLabel, setCustomLabel, toggleLabel, addCustomLabel, resetLabels } =
     useLabelForm();
@@ -99,7 +99,7 @@ export default function Home() {
         </div>
 
         {/* Right panel */}
-        <SongList songs={songs} onEdit={handleEdit} onDelete={deleteSong} onImportCSV={importFromCSV} onExportCSV={exportToCSV} />
+        <SongList songs={songs} onEdit={handleEdit} onDelete={deleteSong} onDeleteAll={deleteAllSongs} onImportCSV={importFromCSV} onExportCSV={exportToCSV} />
       </div>
     </div>
   );
