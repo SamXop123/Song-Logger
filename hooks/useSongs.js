@@ -85,16 +85,13 @@ export function useSongs() {
     };
 
     const exportToCSV = useCallback(() => {
-        const headers = "Date,Time,Song Name,Labels\n";
+        // Single Timestamp column (raw ISO 8601) avoids all timezone split issues
+        const headers = "Timestamp,Song Name,Labels\n";
         const csv = songs.reduce((acc, song) => {
-            const d = new Date(song.date);
-            // Use stable ISO-style date (YYYY-MM-DD) and 24h time (HH:MM:SS)
-            const dateStr = d.toISOString().split("T")[0];
-            const timeStr = d.toTimeString().split(" ")[0]; // HH:MM:SS
             const labels = (song.labels || []).join(", ");
             return (
                 acc +
-                `${dateStr},${timeStr},${csvEscape(song.songName)},${csvEscape(labels)}\n`
+                `${song.date},${csvEscape(song.songName)},${csvEscape(labels)}\n`
             );
         }, headers);
 
@@ -112,67 +109,103 @@ export function useSongs() {
             const text = await file.text();
             const lines = text.split("\n").filter((l) => l.trim());
 
-            // Skip header row
             if (lines.length < 2) {
                 showMessage("CSV file is empty or has no data rows.");
                 return;
             }
 
-            // Deduplicate by composite key: songName (lowered) + date ISO string
+            // Detect format from header
+            const header = lines[0].toLowerCase();
+            // New format: Timestamp,Song Name,Labels  (3 columns)
+            // Old format: Date,Time,Song Name,Labels  (4 columns)
+            const isNewFormat = header.startsWith("timestamp");
+
+            // Deduplicate by composite key: songName (lowered) + exact ISO date string
             const existingKeys = new Set(
                 (await getDb().songs.toArray()).map(
                     (s) => `${s.songName.toLowerCase()}|||${s.date}`
                 )
             );
 
-            const newSongs = [];
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i];
-
-                // Parse CSV respecting quoted fields
-                // Format: Date,Time,Song Name,"Label1, Label2"
-                let fields = [];
+            /** Parse a single CSV line; returns { fields, quoted[] } */
+            const parseLine = (line) => {
+                const fields = [];
+                const quoted = [];
                 let current = "";
                 let inQuotes = false;
+                let fieldIsQuoted = false;
                 for (let c = 0; c < line.length; c++) {
                     const ch = line[c];
                     if (ch === '"') {
-                        inQuotes = !inQuotes;
+                        if (inQuotes && line[c + 1] === '"') {
+                            current += '"';
+                            c++;
+                        } else {
+                            inQuotes = !inQuotes;
+                            if (inQuotes) fieldIsQuoted = true;
+                        }
                     } else if (ch === "," && !inQuotes) {
                         fields.push(current.trim());
+                        quoted.push(fieldIsQuoted);
                         current = "";
+                        fieldIsQuoted = false;
                     } else {
                         current += ch;
                     }
                 }
                 fields.push(current.trim());
+                quoted.push(fieldIsQuoted);
+                return { fields, quoted };
+            };
 
-                if (fields.length < 3) continue;
+            const newSongs = [];
+            for (let i = 1; i < lines.length; i++) {
+                const { fields, quoted } = parseLine(lines[i]);
 
-                const dateStr = fields[0];
-                const timeStr = fields[1];
-                const songName = fields[2];
-                const labelsStr = fields[3] || "";
+                let date, songName, labelsStr;
+
+                if (isNewFormat) {
+                    // Timestamp,Song Name,Labels
+                    if (fields.length < 2) continue;
+                    date = fields[0];
+                    songName = fields[1];
+                    labelsStr = fields[2] || "";
+                } else {
+                    // Old format: Date,Time,Song Name[,Song Name continued...],["Labels"]
+                    // The labels field is always the last field AND was originally quoted.
+                    // If the last field is not quoted, the row has no labels.
+                    if (fields.length < 3) continue;
+                    const dateStr = fields[0];
+                    const timeStr = fields[1];
+
+                    const lastIsQuotedLabel = quoted[fields.length - 1] && fields.length > 3;
+                    if (lastIsQuotedLabel) {
+                        labelsStr = fields[fields.length - 1];
+                        // Song name: all unquoted fields between time and labels, rejoined
+                        songName = fields.slice(2, fields.length - 1).join(",");
+                    } else {
+                        // No labels field — everything from field[2] onward is the song name
+                        labelsStr = "";
+                        songName = fields.slice(2).join(",");
+                    }
+
+                    // Parse DD-MM-YYYY or YYYY-MM-DD
+                    const ddmmyyyy = /^(\d{2})-(\d{2})-(\d{4})$/.exec(dateStr);
+                    const isoDate = ddmmyyyy
+                        ? `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`
+                        : dateStr;
+                    const localAttempt = new Date(`${isoDate}T${timeStr}`);
+                    date = !isNaN(localAttempt.getTime())
+                        ? localAttempt.toISOString()
+                        : new Date().toISOString();
+                }
 
                 if (!songName) continue;
 
-                // Try to reconstruct a proper date
-                let date;
-                try {
-                    // Handle ISO format (YYYY-MM-DD HH:MM:SS) or locale format
-                    const parsed = new Date(`${dateStr}T${timeStr}`);
-                    if (!isNaN(parsed.getTime())) {
-                        date = parsed.toISOString();
-                    } else {
-                        // Fallback: try space-separated (for old locale-format CSVs)
-                        const parsed2 = new Date(`${dateStr} ${timeStr}`);
-                        date = !isNaN(parsed2.getTime())
-                            ? parsed2.toISOString()
-                            : new Date().toISOString();
-                    }
-                } catch {
-                    date = new Date().toISOString();
-                }
+                // Validate / normalise the date to a proper ISO string
+                const parsedDate = new Date(date);
+                if (isNaN(parsedDate.getTime())) continue;
+                date = parsedDate.toISOString();
 
                 const key = `${songName.toLowerCase()}|||${date}`;
                 if (existingKeys.has(key)) continue;
