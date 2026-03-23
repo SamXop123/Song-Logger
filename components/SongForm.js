@@ -40,41 +40,50 @@ const SongForm = memo(function SongForm({
             onCustomDateChange("");
         }
     };
-
     return (
-        <form onSubmit={onSubmit}>
-            <input
-                type="text"
-                value={songName}
-                onChange={(e) => onSongNameChange(e.target.value)}
-                placeholder="Enter song name"
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 mb-2"
-            />
-            <LabelSelector
-                selectedLabels={selectedLabels}
-                onToggle={onToggleLabel}
-                customLabel={customLabel}
-                onCustomLabelChange={onCustomLabelChange}
-                onAddCustomLabel={onAddCustomLabel}
-            />
+        <form onSubmit={onSubmit} className="flex flex-col h-full mt-2">
+            <div className="mb-5">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                    Song Name
+                </label>
+                <div className="relative">
+                    <input
+                        type="text"
+                        value={songName}
+                        onChange={(e) => onSongNameChange(e.target.value)}
+                        placeholder="e.g. Bohemian Rhapsody"
+                        className="w-full px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 dark:focus:ring-violet-400/50 dark:focus:border-violet-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-100 transition-all shadow-inner"
+                    />
+                </div>
+            </div>
+
+            <div className="mb-5">
+                <LabelSelector
+                    selectedLabels={selectedLabels}
+                    onToggle={onToggleLabel}
+                    customLabel={customLabel}
+                    onCustomLabelChange={onCustomLabelChange}
+                    onAddCustomLabel={onAddCustomLabel}
+                />
+            </div>
 
             {/* Custom date/time toggle */}
-            <div className="my-3">
+            <div className="mb-6">
                 <button
                     type="button"
                     onClick={handleToggleCustomDate}
-                    className={`flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${useCustomDate
-                            ? "bg-violet-100 dark:bg-violet-900/30 border-violet-400 dark:border-violet-600 text-violet-700 dark:text-violet-300"
-                            : "bg-gray-100 dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-violet-400 hover:text-violet-600"
+                    className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm ${useCustomDate
+                            ? "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 ring-1 ring-violet-300 dark:ring-violet-700/50"
+                            : "bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                         }`}
                 >
                     <span>{useCustomDate ? "🗓️" : "🕐"}</span>
-                    {useCustomDate ? "Custom date set" : "Set custom date & time"}
+                    {useCustomDate ? "Custom date active" : "Set custom date & time"}
                 </button>
 
                 {useCustomDate && (
-                    <div className="mt-2 p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-700">
-                        <label className="block text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-1.5">
+                    <div className="mt-3 p-4 rounded-2xl bg-gradient-to-br from-violet-50/50 to-indigo-50/50 dark:from-violet-900/20 dark:to-indigo-900/20 border border-violet-100 dark:border-violet-800/30 animate-in fade-in slide-in-from-top-2">
+                        <label className="block text-[11px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-2">
                             Log this song on:
                         </label>
                         <input
@@ -82,30 +91,45 @@ const SongForm = memo(function SongForm({
                             value={customDate}
                             onChange={(e) => onCustomDateChange(e.target.value)}
                             max={nowLocal()}
-                            className="w-full p-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 border-violet-300"
+                            className="w-full px-4 py-2.5 text-sm bg-white/80 dark:bg-slate-950/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-slate-900 dark:text-slate-100 dark:border-violet-800/50 border-violet-200 transition-all shadow-sm"
                         />
-                        <p className="text-[10px] text-violet-500 dark:text-violet-400 mt-1.5 italic">
+                        <p className="text-[10px] text-violet-500/70 dark:text-violet-400/80 mt-2 font-medium">
                             Dates in the future are not allowed.
                         </p>
                     </div>
                 )}
             </div>
 
-            <button
-                type="submit"
-                className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 cursor-pointer"
-            >
-                {editingSong ? "Save Edit" : "Add Song"}
-            </button>
-            {editingSong && (
+            <div className="mt-auto pt-4 flex flex-col gap-3">
                 <button
-                    type="button"
-                    onClick={onCancelEdit}
-                    className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600 mt-2 cursor-pointer"
+                    type="submit"
+                    className="w-full relative group overflow-hidden bg-slate-900 dark:bg-slate-800 text-white font-bold text-sm tracking-wide p-3.5 rounded-xl transition-all cursor-pointer shadow-lg hover:shadow-xl hover:-translate-y-0.5"
                 >
-                    Cancel Edit
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-violet-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span className="relative flex items-center justify-center gap-2">
+                        {editingSong ? (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                Save Changes
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                                Add to Log
+                            </>
+                        )}
+                    </span>
                 </button>
-            )}
+                {editingSong && (
+                    <button
+                        type="button"
+                        onClick={onCancelEdit}
+                        className="w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm p-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                    >
+                        Cancel Edit
+                    </button>
+                )}
+            </div>
         </form>
     );
 });
