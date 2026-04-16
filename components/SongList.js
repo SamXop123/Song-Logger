@@ -7,7 +7,7 @@ import SongItem from "@/components/SongItem";
  * Pure UI: renders the song list and export/import buttons.
  * Memoized so it only re-renders when songs array or callbacks change.
  */
-const SongList = memo(function SongList({ songs, onEdit, onDelete, onDeleteAll, onImportCSV, onExportCSV }) {
+const SongList = memo(function SongList({ songs, isLoading, onEdit, onDelete, onDeleteAll, onImportCSV, onExportCSV }) {
     const fileInputRef = useRef(null);
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -106,7 +106,13 @@ const SongList = memo(function SongList({ songs, onEdit, onDelete, onDeleteAll, 
                 </div>
             )}
 
-            {songs.length === 0 ? (
+            {isLoading ? (
+                <div className="flex-grow flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Loading your cloud song log...
+                    </p>
+                </div>
+            ) : songs.length === 0 ? (
                 <div className="flex-grow flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30">
                     <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 text-slate-400 dark:text-slate-500">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"></path></svg>
