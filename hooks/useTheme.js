@@ -7,13 +7,10 @@ import { useState, useEffect, useCallback } from "react";
  * Applies the `dark` class to <html> — all DOM work is inside effects.
  */
 export function useTheme() {
-    const [theme, setTheme] = useState("light"); // safe SSR default
-
-    // Hydrate from localStorage once on client
-    useEffect(() => {
-        const stored = localStorage.getItem("theme") || "light";
-        setTheme(stored);
-    }, []);
+    const [theme, setTheme] = useState(() => {
+        if (typeof window === "undefined") return "light";
+        return localStorage.getItem("theme") || "light";
+    });
 
     // Sync class + storage whenever theme changes
     useEffect(() => {
