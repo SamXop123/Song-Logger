@@ -201,7 +201,7 @@ export default function Home() {
       {/* Main glass wrapper, made extremely wide to fit 3 columns on large screens */}
       <div className="flex flex-col mt-4 sm:mt-8 lg:flex-row gap-6 w-full max-w-7xl xl:max-w-[90rem] z-10 transition-all duration-500">
         {/* Left panel - Add/Edit Form */}
-        <div className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl shadow-indigo-500/5 dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/60 dark:border-slate-700/50 w-full lg:w-[35%] xl:w-[34%] flex flex-col transition-all">
+        <div className="relative z-30 bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl shadow-indigo-500/5 dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/60 dark:border-slate-700/50 w-full lg:w-[35%] xl:w-[34%] flex flex-col transition-all">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-300">
@@ -211,7 +211,14 @@ export default function Home() {
                 Track your musical journey
               </p>
             </div>
-            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            <UserMenu
+              user={user}
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              onImportLocalData={handleImportLocalData}
+              onSignOut={handleSignOut}
+              isMigrating={isMigrating}
+            />
           </div>
 
           <div className="flex-grow">
@@ -236,6 +243,16 @@ export default function Home() {
               {message}
             </div>
           )}
+          {migrationMessage && (
+            <div className="mt-4 p-3 rounded-2xl bg-violet-50/80 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-sm font-medium text-center border border-violet-100 dark:border-violet-800/50 animate-in fade-in slide-in-from-bottom-2">
+              {migrationMessage}
+            </div>
+          )}
+          {authError && (
+            <div className="mt-4 p-3 rounded-2xl bg-red-50/80 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm font-medium text-center border border-red-100 dark:border-red-800/50 animate-in fade-in slide-in-from-bottom-2">
+              {authError}
+            </div>
+          )}
 
           <footer className="text-center text-xs font-medium text-slate-400 dark:text-slate-500 mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/50">
             &copy; SamXop123 &mdash; 2026
@@ -243,13 +260,26 @@ export default function Home() {
         </div>
 
         {/* Middle panel - List */}
-        <div className="w-full lg:w-[40%] xl:w-[45%] flex flex-col">
-          <SongList songs={songs} onEdit={handleEdit} onDelete={deleteSong} onDeleteAll={deleteAllSongs} onImportCSV={importFromCSV} onExportCSV={exportToCSV} />
+        <div className="relative z-10 w-full lg:w-[40%] xl:w-[45%] flex flex-col">
+          <SongList
+            songs={songs}
+            isLoading={songsLoading}
+            onEdit={handleEdit}
+            onDelete={deleteSong}
+            onDeleteAll={deleteAllSongs}
+            onImportCSV={importFromCSV}
+            onExportCSV={exportToCSV}
+          />
         </div>
 
         {/* Right panel - Favorites Wall */}
-        <div className="w-full lg:w-[25%] xl:w-[25%] flex flex-col">
-          <SpecialSongs />
+        <div className="relative z-10 w-full lg:w-[25%] xl:w-[25%] flex flex-col">
+          <CloudSpecialSongs
+            specialSongs={specialSongs}
+            isLoading={specialSongsLoading}
+            onAddSpecialSong={addSpecialSong}
+            onDeleteSpecialSong={deleteSpecialSong}
+          />
         </div>
       </div>
     </div>
