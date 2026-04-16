@@ -178,17 +178,88 @@ export default function Home() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen relative overflow-hidden px-4 py-8 sm:py-10">
         <ParticlesBackground theme={theme} />
+
+        <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute right-0 top-1/3 h-80 w-80 rounded-full bg-cyan-300/15 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-indigo-400/10 blur-3xl" />
+
         <div className="absolute top-6 right-6 z-20">
           <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
-        <div className="relative z-10 w-full flex justify-center">
-          <AuthCard
-            onSignIn={handleSignIn}
-            isLoading={isSigningIn}
-            error={migrationMessage || authError}
-          />
+
+        <div className="relative z-10 mx-auto mt-14 sm:mt-16 w-full max-w-6xl">
+          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] items-stretch">
+            <section className="relative rounded-[2rem] border border-white/60 dark:border-slate-700/50 bg-white/75 dark:bg-slate-900/45 backdrop-blur-xl p-7 sm:p-10 shadow-2xl shadow-indigo-500/10 dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden animate-in fade-in slide-in-from-left-4 duration-700">
+              <div className="absolute inset-0 opacity-70 dark:opacity-40 bg-[radial-gradient(circle_at_12%_18%,rgba(124,58,237,0.2),transparent_45%),radial-gradient(circle_at_88%_30%,rgba(6,182,212,0.2),transparent_48%)]" />
+              <div className="relative">
+                <p className="inline-flex items-center rounded-full border border-violet-200/70 dark:border-violet-500/30 bg-violet-50/80 dark:bg-violet-900/25 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-violet-700 dark:text-violet-300">
+                  Song Logger v4.0
+                </p>
+                <h1 className="mt-5 text-4xl sm:text-5xl font-black tracking-tight leading-[1.05] text-slate-900 dark:text-white">
+                  Your music memory,
+                  <br />
+                  beautifully organized.
+                </h1>
+                <p className="mt-4 max-w-xl text-slate-600 dark:text-slate-300 leading-7 text-base sm:text-lg">
+                  Log songs in seconds, group them with custom labels, and keep
+                  your personal timeline connected to your account.
+                </p>
+
+                <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/45 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-semibold">
+                      Fast logging
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">
+                      Add a track in one tap.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/45 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-semibold">
+                      Smart labels
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">
+                      Build your own vibe taxonomy.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/45 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-semibold">
+                      Personal space
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">
+                      Private account-based logs.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex flex-wrap gap-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  <span className="rounded-full px-3 py-1 border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/45">
+                    CSV import/export
+                  </span>
+                  <span className="rounded-full px-3 py-1 border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/45">
+                    Theme toggle
+                  </span>
+                  <span className="rounded-full px-3 py-1 border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/45">
+                    Favorites wall
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <div className="flex items-center animate-in fade-in slide-in-from-right-4 duration-700">
+              <AuthCard
+                onSignIn={handleSignIn}
+                isLoading={isSigningIn}
+                error={migrationMessage || authError}
+              />
+            </div>
+          </div>
+
+          <p className="mt-5 px-1 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            Designed for personal tracking, now powered by secure account-based sync.
+          </p>
         </div>
       </div>
     );
