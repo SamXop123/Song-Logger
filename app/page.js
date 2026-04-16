@@ -95,6 +95,105 @@ export default function Home() {
     [songName, selectedLabels, editingSong, updateSong, resetForm]
   );
 
+  const handleSignIn = useCallback(async () => {
+    setIsSigningIn(true);
+    setMigrationMessage("");
+    const { error } = await signInWithGoogle();
+    if (error) {
+      setMigrationMessage(error.message);
+      setIsSigningIn(false);
+    }
+  }, [signInWithGoogle]);
+
+  const handleSignOut = useCallback(async () => {
+    setMigrationMessage("");
+    await signOut();
+    resetForm();
+  }, [resetForm, signOut]);
+
+  const handleImportLocalData = useCallback(async () => {
+    setIsMigrating(true);
+    setMigrationMessage("");
+
+    try {
+      const [songResult, specialResult] = await Promise.all([
+        importFromLocalSongs(),
+        importFromLocalSpecialSongs(),
+      ]);
+
+      const importedParts = [];
+      if (songResult.imported > 0) {
+        importedParts.push(`${songResult.imported} song(s)`);
+      }
+      if (specialResult.imported > 0) {
+        importedParts.push(`${specialResult.imported} favorite(s)`);
+      }
+
+      if (importedParts.length === 0) {
+        setMigrationMessage("No new local songs or favorites were found in this browser.");
+      } else {
+        setMigrationMessage(
+          `Imported ${importedParts.join(
+            " and "
+          )} from this browser. Your local data was left untouched as a backup.`
+        );
+      }
+    } catch (error) {
+      setMigrationMessage(error.message || "Local data import failed.");
+    } finally {
+      setIsMigrating(false);
+    }
+  }, [importFromLocalSongs, importFromLocalSpecialSongs]);
+
+  if (!isConfigured) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        <ParticlesBackground theme={theme} />
+        <div className="absolute top-6 right-6 z-20">
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        </div>
+        <div className="relative z-10 w-full flex justify-center">
+          <SetupCard />
+        </div>
+      </div>
+    );
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        <ParticlesBackground theme={theme} />
+        <div className="absolute top-6 right-6 z-20">
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        </div>
+        <div className="relative z-10 w-full max-w-md rounded-[2rem] border border-white/60 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl px-8 py-12 text-center shadow-2xl shadow-indigo-500/5 dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]">
+          <div className="mx-auto h-12 w-12 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin"></div>
+          <p className="mt-5 text-sm font-medium text-slate-600 dark:text-slate-300">
+            Restoring your session...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        <ParticlesBackground theme={theme} />
+        <div className="absolute top-6 right-6 z-20">
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        </div>
+        <div className="relative z-10 w-full flex justify-center">
+          <AuthCard
+            onSignIn={handleSignIn}
+            isLoading={isSigningIn}
+            error={migrationMessage || authError}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-start justify-center p-4 relative overflow-hidden">
       <ParticlesBackground theme={theme} />
