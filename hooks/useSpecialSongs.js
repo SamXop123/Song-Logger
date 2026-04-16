@@ -1,25 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 /**
  * Manages the special songs (Song of the Month / Song of the Year) using localStorage.
  * Kept separate from main song list.
  */
 export function useSpecialSongs() {
-    const [specialSongs, setSpecialSongs] = useState([]);
+    const [specialSongs, setSpecialSongs] = useState(() => {
+        if (typeof window === "undefined") return [];
+
+        const stored = localStorage.getItem("song_logger_special_songs");
+        if (!stored) return [];
+
+        try {
+            return JSON.parse(stored);
+        } catch {
+            console.error("Failed to parse special songs from localStorage");
+            return [];
+        }
+    });
 
     // Load on mount — client-side only
-    useEffect(() => {
-        const stored = localStorage.getItem("song_logger_special_songs");
-        if (stored) {
-            try {
-                setSpecialSongs(JSON.parse(stored));
-            } catch (e) {
-                console.error("Failed to parse special songs from localStorage");
-            }
-        }
-    }, []);
 
     const addSpecialSong = useCallback(
         (type, songName, year, month = null) => {
