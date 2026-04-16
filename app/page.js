@@ -1,21 +1,52 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useSongs } from "@/hooks/useSongs";
+import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseSongs } from "@/hooks/useSupabaseSongs";
+import { useSupabaseSpecialSongs } from "@/hooks/useSupabaseSpecialSongs";
 import { useTheme } from "@/hooks/useTheme";
 import { useLabelForm } from "@/hooks/useLabelForm";
 import ParticlesBackground from "@/components/ParticlesBackground";
 import ThemeToggle from "@/components/ThemeToggle";
+import UserMenu from "@/components/UserMenu";
 import SongForm from "@/components/SongForm";
 import SongList from "@/components/SongList";
-import SpecialSongs from "@/components/SpecialSongs";
+import CloudSpecialSongs from "@/components/CloudSpecialSongs";
+import AuthCard from "@/components/AuthCard";
+import SetupCard from "@/components/SetupCard";
 
 /**
  * Thin orchestration shell.
  * All business logic lives in hooks; this component only wires them together.
  */
 export default function Home() {
-  const { songs, message, addSong, updateSong, deleteSong, deleteAllSongs, importFromCSV, exportToCSV } = useSongs();
+  const {
+    user,
+    loading: authLoading,
+    error: authError,
+    isConfigured,
+    signInWithGoogle,
+    signOut,
+  } = useAuth();
+  const {
+    songs,
+    message,
+    loading: songsLoading,
+    addSong,
+    updateSong,
+    deleteSong,
+    deleteAllSongs,
+    importFromCSV,
+    exportToCSV,
+    importFromLocalSongs,
+  } = useSupabaseSongs(user);
+  const {
+    specialSongs,
+    loading: specialSongsLoading,
+    addSpecialSong,
+    deleteSpecialSong,
+    importFromLocalSpecialSongs,
+  } = useSupabaseSpecialSongs(user);
   const { theme, toggleTheme } = useTheme();
   const { selectedLabels, customLabel, setCustomLabel, toggleLabel, addCustomLabel, resetLabels } =
     useLabelForm();
@@ -23,6 +54,9 @@ export default function Home() {
   const [songName, setSongName] = useState("");
   const [editingSong, setEditingSong] = useState(null);
   const [customDate, setCustomDate] = useState("");
+  const [migrationMessage, setMigrationMessage] = useState("");
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   // --- Form state helpers ---
   const resetForm = useCallback(() => {
