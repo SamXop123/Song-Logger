@@ -25,6 +25,8 @@ A sleek, client‑side song‑logging web app built with **Next.js**, **React**,
 5. **Export CSV** – click **Export to CSV** (downloaded file includes Date, Time, Song Name, Labels).
 6. **Import CSV** – click **Import CSV**, select a previously exported file; new songs are merged (duplicates are ignored).
 7. **Theme** – toggle dark/light mode with the moon/sun button.
+8. **Custom date** - log your song entries on any date you missed.
+9. **Favorite Songs** - add your month/year specific favorite songs from the favorites wall.
 
 ## License & Credits
 - © SamXop123 2026. All rights reserved.
