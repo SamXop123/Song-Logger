@@ -124,3 +124,57 @@ export function useSupabaseSpecialSongs(user) {
     [supabase, user]
   );
 
+  const importFromLocalSpecialSongs = useCallback(async () => {
+    if (!supabase || !user) {
+      return { imported: 0, available: 0 };
+    }
+
+    const localSpecialSongs = getLocalSpecialSongs();
+    const existingKeys = new Set(specialSongs.map(buildSpecialSongKey));
+
+    const songsToInsert = localSpecialSongs
+      .map((song) => {
+        if (!song.songName || !song.type) return null;
+
+        return {
+          user_id: user.id,
+          type: song.type,
+          song_name: song.songName.trim(),
+          year: Number.parseInt(song.year, 10) || new Date().getFullYear(),
+          month: song.month || null,
+        };
+      })
+      .filter(Boolean)
+      .filter((song) => {
+        const key = buildSpecialSongKey({
+          type: song.type,
+          year: song.year,
+          month: song.month,
+          songName: song.song_name,
+        });
+        if (existingKeys.has(key)) return false;
+        existingKeys.add(key);
+        return true;
+      });
+
+    if (songsToInsert.length === 0) {
+      return { imported: 0, available: localSpecialSongs.length };
+    }
+
+    const { error } = await supabase.from("special_songs").insert(songsToInsert);
+    if (error) {
+      throw error;
+    }
+
+    await loadSpecialSongs();
+    return { imported: songsToInsert.length, available: localSpecialSongs.length };
+  }, [loadSpecialSongs, specialSongs, supabase, user]);
+
+  return {
+    specialSongs,
+    loading,
+    addSpecialSong,
+    deleteSpecialSong,
+    importFromLocalSpecialSongs,
+  };
+}
