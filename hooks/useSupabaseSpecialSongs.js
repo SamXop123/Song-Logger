@@ -73,3 +73,54 @@ export function useSupabaseSpecialSongs(user) {
     };
   }, [loadSpecialSongs, supabase, user]);
 
+  const addSpecialSong = useCallback(
+    async (type, songName, year, month = null) => {
+      if (!supabase || !user) return;
+
+      const { data, error } = await supabase
+        .from("special_songs")
+        .insert({
+          user_id: user.id,
+          type,
+          song_name: songName.trim(),
+          year: Number.parseInt(year, 10) || new Date().getFullYear(),
+          month,
+        })
+        .select("id, type, song_name, year, month, date_added")
+        .single();
+
+      if (error) {
+        console.error("Failed to add special song", error.message);
+        return;
+      }
+
+      setSpecialSongs((prev) => {
+        const updated = [mapSpecialSongRow(data), ...prev];
+        return updated.sort(
+          (a, b) => new Date(b.dateAdded) - new Date(a.dateAdded)
+        );
+      });
+    },
+    [supabase, user]
+  );
+
+  const deleteSpecialSong = useCallback(
+    async (id) => {
+      if (!supabase || !user) return;
+
+      const { error } = await supabase
+        .from("special_songs")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Failed to delete special song", error.message);
+        return;
+      }
+
+      setSpecialSongs((prev) => prev.filter((song) => song.id !== id));
+    },
+    [supabase, user]
+  );
+
