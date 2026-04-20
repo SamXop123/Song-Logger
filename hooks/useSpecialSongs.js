@@ -1,12 +1,20 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { sortMonthSpecialSongs, sortYearSpecialSongs } from "@/lib/specialSongSort";
 
 /**
  * Manages the special songs (Song of the Month / Song of the Year) using localStorage.
  * Kept separate from main song list.
  */
 export function useSpecialSongs() {
+    const sortAllSpecialSongs = useCallback((songs) => {
+        return [
+            ...sortYearSpecialSongs(songs.filter((song) => song.type === "year")),
+            ...sortMonthSpecialSongs(songs.filter((song) => song.type === "month")),
+        ];
+    }, []);
+
     const [specialSongs, setSpecialSongs] = useState(() => {
         if (typeof window === "undefined") return [];
 
@@ -14,7 +22,7 @@ export function useSpecialSongs() {
         if (!stored) return [];
 
         try {
-            return JSON.parse(stored);
+            return sortAllSpecialSongs(JSON.parse(stored));
         } catch {
             console.error("Failed to parse special songs from localStorage");
             return [];
@@ -36,15 +44,12 @@ export function useSpecialSongs() {
             };
             
             setSpecialSongs((prev) => {
-                const updated = [newSong, ...prev];
-                // Keep it sorted by year descending, then month descending if we mapped months to numbers
-                // For simplicity, just sort by dateAdded descending so newest is at the top
-                const sorted = updated.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+                const sorted = sortAllSpecialSongs([newSong, ...prev]);
                 localStorage.setItem("song_logger_special_songs", JSON.stringify(sorted));
                 return sorted;
             });
         },
-        []
+        [sortAllSpecialSongs]
     );
 
     const deleteSpecialSong = useCallback(
