@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { sortMonthSpecialSongs, sortYearSpecialSongs } from "@/lib/specialSongSort";
 
 const MONTHS = [
   "January",
@@ -54,8 +55,12 @@ export default function CloudSpecialSongs({
     }
   };
 
-  const monthSongs = specialSongs.filter((song) => song.type === "month");
-  const yearSongs = specialSongs.filter((song) => song.type === "year");
+  const monthSongs = sortMonthSpecialSongs(
+    specialSongs.filter((song) => song.type === "month")
+  );
+  const yearSongs = sortYearSpecialSongs(
+    specialSongs.filter((song) => song.type === "year")
+  );
 
   return (
     <div className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl shadow-indigo-500/5 dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/60 dark:border-slate-700/50 w-full h-full flex flex-col transition-all">
