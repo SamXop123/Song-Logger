@@ -6,6 +6,7 @@ import {
   getSupabaseBrowserClient,
   isSupabaseConfigured,
 } from "@/lib/supabase/client";
+import { sortMonthSpecialSongs, sortYearSpecialSongs } from "@/lib/specialSongSort";
 
 function mapSpecialSongRow(song) {
   return {
@@ -25,6 +26,13 @@ function buildSpecialSongKey(song) {
     song.month || "",
     song.songName.trim().toLowerCase(),
   ].join("|||");
+}
+
+function sortAllSpecialSongs(songs) {
+  return [
+    ...sortYearSpecialSongs(songs.filter((song) => song.type === "year")),
+    ...sortMonthSpecialSongs(songs.filter((song) => song.type === "month")),
+  ];
 }
 
 export function useSupabaseSpecialSongs(user) {
@@ -52,7 +60,7 @@ export function useSupabaseSpecialSongs(user) {
       return;
     }
 
-    setSpecialSongs((data || []).map(mapSpecialSongRow));
+    setSpecialSongs(sortAllSpecialSongs((data || []).map(mapSpecialSongRow)));
     setLoading(false);
   }, [supabase, user]);
 
@@ -94,12 +102,7 @@ export function useSupabaseSpecialSongs(user) {
         return;
       }
 
-      setSpecialSongs((prev) => {
-        const updated = [mapSpecialSongRow(data), ...prev];
-        return updated.sort(
-          (a, b) => new Date(b.dateAdded) - new Date(a.dateAdded)
-        );
-      });
+      setSpecialSongs((prev) => sortAllSpecialSongs([mapSpecialSongRow(data), ...prev]));
     },
     [supabase, user]
   );
